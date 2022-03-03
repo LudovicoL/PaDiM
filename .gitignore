@@ -1,1 +1,5 @@
 *.ll
+datasets/
+outputs/
+__pycache__/
+.git/

@@ -358,7 +358,7 @@ def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
 
         fig_img.savefig(os.path.join(save_dir, class_name + '_{}'.format(i)), dpi=100)
         plt.close()
-    return tp, tn, fp, fn     
+    return tp, tn, fp, fn
 
 
 def denormalization(x):
