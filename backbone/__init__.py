@@ -1,6 +1,7 @@
 from .mvtec import *
 from .AITEX import *
 from .CustomDataset import *
+from .BTAD import *
 
 import requests
 import json

@@ -67,8 +67,8 @@ class AitexDataSet(Dataset):
             mask = Image.open(mask_loc).convert('L')
             tensor_mask = self.transform_mask(mask)                             # mask in mvtec class
         else:
-            tensor_mask = torch.zeros([1, PATCH_SIZE, PATCH_SIZE])                                                     # y in mvtec class
-        if int(torch.sum(tensor_mask)) > ANOMALY_THRESHOLD:
+            tensor_mask = torch.zeros([1, self.cropsize, self.cropsize])
+        if int(torch.sum(tensor_mask)) > ANOMALY_THRESHOLD:                     # y in mvtec class
             defective = 1
         else:
             defective = 0
@@ -131,50 +131,6 @@ def countAitexAnomalies():
         else:
             defective.append(False)
     return number_of_defects, defective
-
-
-# --------------- Functions to data augmentation ---------------
-
-def add_noise(inputs, noise_factor=0.3):
-    """
-    source: https://ichi.pro/it/denoising-autoencoder-in-pytorch-sul-set-di-dati-mnist-184080287458686
-    """
-    noisy = inputs + torch.randn_like(inputs) * noise_factor
-    noisy = torch.clip(noisy, 0., 1.)
-    return noisy
-
-def augmentationDataset(dataset):
-    ds = []
-    widths = []
-    heights = []
-    for i in range(len(dataset)):
-        j = dataset.__getitem__(i)
-
-        ds.append(j)                                                    # Original image
-        widths.append(j.shape[2])
-        heights.append(j.shape[1])
-
-        noised_image = add_noise(j, noise_factor=0.05)                # Gaussian noise
-        ds.append(noised_image)
-        widths.append(noised_image.shape[2])
-        heights.append(noised_image.shape[1])
-
-        j = np.transpose(j.numpy(), (1, 2, 0))
-        ds.append(torch.tensor(np.fliplr(j).copy()).permute(2, 0, 1))   # orizontal flip
-        widths.append(j.shape[1])
-        heights.append(j.shape[0])
-
-        ds.append(torch.tensor(np.flipud(j).copy()).permute(2, 0, 1))   # vertical flip
-        widths.append(j.shape[1])
-        heights.append(j.shape[0])
-
-        blurred = gaussian_filter(j, sigma=0.5)                         # blur
-        ds.append(torch.tensor(blurred).permute(2, 0, 1))
-        widths.append(j.shape[1])
-        heights.append(j.shape[0])
-        
-    return ds, widths, heights
-
 
 
 # --------------- Functions to create Aitex Dataset ---------------
@@ -342,7 +298,8 @@ def CreateAitexDataset(resize, log_file):
         f = open(aitex_config_file, "a")
         f.write(str(resize))
         f.close()
-    except:
+    except Exception as e:
+        bb.myPrint(e, log_file)
         bb.myPrint("Error in CreateAitexDataset function!", log_file)
         DeleteFolder(aitex_folder)
         sys.exit(-1)
@@ -390,7 +347,8 @@ def download(log_file):
                 z.extractall(path=aitex_folder)
             os.remove(aitex_folder+ARCHIVES[idx])
         return
-    except:
+    except Exception as e:
+        bb.myPrint(e, log_file)
         bb.myPrint("Can't download AITEX dataset. Retry later.", log_file)
         sys.exit(-1) 
 

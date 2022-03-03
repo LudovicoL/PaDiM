@@ -58,8 +58,8 @@ class CustomDataset(Dataset):
             mask = Image.open(mask_loc).convert('L')
             tensor_mask = self.transform_mask(mask)                             # mask in mvtec class
         else:
-            tensor_mask = torch.zeros([1, PATCH_SIZE, PATCH_SIZE])              # y in mvtec class
-        if int(torch.sum(tensor_mask)) > ANOMALY_THRESHOLD:
+            tensor_mask = torch.zeros([1, self.cropsize, self.cropsize])
+        if int(torch.sum(tensor_mask)) > ANOMALY_THRESHOLD:                     # y in mvtec class
             defective = 1
         else:
             defective = 0

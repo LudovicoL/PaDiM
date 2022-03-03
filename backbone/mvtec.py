@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms as T
 import shutil
+import backbone as bb
 
 URL = 'https://www.mydrive.ch/shares/38536/3830184030e49fe74747669442f0f282/download/420938113-1629952094/mvtec_anomaly_detection.tar.xz'
 MVTEC_CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid',
@@ -16,7 +17,7 @@ MVTEC_CLASS_NAMES = ['bottle', 'cable', 'capsule', 'carpet', 'grid',
 
 
 class MVTecDataset(Dataset):
-    def __init__(self, dataset_path='./datasets/MVTecAD', class_name='carpet', is_train=True,
+    def __init__(self, log_file, dataset_path='./datasets/MVTecAD', class_name='carpet', is_train=True,
                  resize=256, cropsize=224):
         assert class_name in MVTEC_CLASS_NAMES, 'class_name: {}, should be in {}'.format(class_name, MVTEC_CLASS_NAMES)
         self.dataset_path = dataset_path
@@ -24,7 +25,7 @@ class MVTecDataset(Dataset):
         self.is_train = is_train
         self.resize = resize
         self.cropsize = cropsize
-
+        self.log_file = log_file
         # download dataset if not exist
         if not os.path.isdir(self.dataset_path):
             os.makedirs(self.dataset_path, exist_ok=True)
@@ -99,15 +100,17 @@ class MVTecDataset(Dataset):
             tar_file_path = self.dataset_path + '/mvtec_anomaly_detection.tar.xz'
             if not os.path.exists(tar_file_path):
                 download_url(URL, tar_file_path)
-            print('unzip downloaded dataset: %s' % tar_file_path)
+            bb.myPrint('unzip dataset: %s' % tar_file_path, self.log_file)
             tar = tarfile.open(tar_file_path, 'r:xz')
             tar.extractall(self.dataset_path)
             tar.close()
-            return
-        except:
-            print("Can't download MVTecAD dataset. Retry later.")
+            os.remove(tar_file_path)
+        except Exception as e:
+            bb.myPrint(e, self.log_file)
+            bb.myPrint("Can't download MVTecAD dataset. Retry later.", self.log_file)
             shutil.rmtree(self.dataset_path)
             sys.exit(-1)
+        return
 
 
 class DownloadProgressBar(tqdm):

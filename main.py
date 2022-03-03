@@ -41,7 +41,7 @@ os.mkdir(log_dir)
 
 def parse_args():
     parser = argparse.ArgumentParser('PaDiM')
-    parser.add_argument("-d", "--dataset", default="aitex", help="Choose the dataset: \"aitex\", \"mvtec\".")
+    parser.add_argument("-d", "--dataset", default="aitex", help="Choose the dataset: \"aitex\", \"mvtec\", \"btad\".")
     parser.add_argument("-t", '--telegram', type=bool, default=True, help="Send notification on Telegram.")
     parser.add_argument("-a", '--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='wide_resnet50_2')
     parser.add_argument("-r", '--resize', default=False, action="store_true", help="Resize AITEX dataset.")
@@ -91,6 +91,7 @@ def main():
     total_roc_auc = []
     total_pixel_roc_auc = []
 
+    bb.myPrint("Dataset used: "+args.dataset, log_file)
     if args.dataset == "mvtec":
         CLASS_NAMES = bb.MVTEC_CLASS_NAMES
     elif args.dataset == "aitex":
@@ -99,21 +100,27 @@ def main():
         number_of_defects, _ = bb.countAitexAnomalies()
         bb.myPrint("There are " + str(number_of_defects) + " images with defects.", log_file)
         CLASS_NAMES = bb.AITEX_CLASS_NAMES
+    elif args.dataset == "btad":
+        bb.prepareBtad(log_file)
+        CLASS_NAMES = bb.BTAD_CLASS_NAMES
     elif args.dataset == "custom":
         bb.prepareCustomDataset(log_file)
         CLASS_NAMES = bb.CUSTOMDATASET_CLASS_NAMES
     else:
         bb.myPrint("Error! Choose a valid dataset.", log_file)
         sys.exit(-1)
-    bb.myPrint("Dataset used: "+args.dataset, log_file)
+    
     for class_name in CLASS_NAMES:
 
         if args.dataset == "mvtec":
-            train_dataset = bb.MVTecDataset(class_name=class_name, is_train=True)
-            test_dataset = bb.MVTecDataset(class_name=class_name, is_train=False)
+            train_dataset = bb.MVTecDataset(class_name=class_name, is_train=True, log_file=log_file)
+            test_dataset = bb.MVTecDataset(class_name=class_name, is_train=False, log_file=log_file)
         elif args.dataset == "aitex":
             train_dataset = bb.AitexDataSet(is_train=True, class_name=class_name)
             test_dataset = bb.AitexDataSet(is_train=False, class_name=class_name)
+        elif args.dataset == "btad":
+            train_dataset = bb.BtadDataset(is_train=True, class_name=class_name)
+            test_dataset = bb.BtadDataset(is_train=False, class_name=class_name)
         elif args.dataset == "custom":
             train_dataset = bb.CustomDataset(class_name=class_name, is_train=True)
             test_dataset = bb.CustomDataset(class_name=class_name, is_train=False)
@@ -144,7 +151,6 @@ def main():
 
             # Embedding concat
             embedding_vectors = train_outputs['layer1']
-
             for layer_name in ['layer2', 'layer3']:
                 embedding_vectors = embedding_concat(embedding_vectors, train_outputs[layer_name])
             # randomly select d dimension
@@ -189,7 +195,6 @@ def main():
         
         # Embedding concat
         embedding_vectors = test_outputs['layer1']
-
         for layer_name in ['layer2', 'layer3']:
             embedding_vectors = embedding_concat(embedding_vectors, test_outputs[layer_name])
         # randomly select d dimension
