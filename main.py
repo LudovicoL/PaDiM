@@ -42,7 +42,7 @@ os.mkdir(log_dir)
 def parse_args():
     parser = argparse.ArgumentParser('PaDiM')
     parser.add_argument("-d", "--dataset", default="aitex", help="Choose the dataset: \"aitex\", \"mvtec\", \"btad\".")
-    parser.add_argument("-t", '--telegram', type=bool, default=True, help="Send notification on Telegram.")
+    parser.add_argument("-t", '--telegram', default=False, action="store_true", help="Send notification on Telegram.")
     parser.add_argument("-a", '--arch', type=str, choices=['resnet18', 'wide_resnet50_2'], default='wide_resnet50_2')
     parser.add_argument("-r", '--resize', default=False, action="store_true", help="Resize AITEX dataset.")
     return parser.parse_args()
@@ -209,7 +209,6 @@ def main():
             conv_inv = np.linalg.inv(train_outputs[1][:, :, i])
             dist = [mahalanobis(sample[:, i], mean, conv_inv) for sample in embedding_vectors]
             dist_list.append(dist)
-
         dist_list = np.array(dist_list).transpose(1, 0).reshape(B, H, W)
 
         # upsample
@@ -358,7 +357,7 @@ def plot_fig(test_img, scores, gts, threshold, save_dir, class_name):
 
         fig_img.savefig(os.path.join(save_dir, class_name + '_{}'.format(i)), dpi=100)
         plt.close()
-    return tp, tn, fp, fn
+    return tp, tn, fp, fn     
 
 
 def denormalization(x):
