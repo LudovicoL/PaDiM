@@ -9,11 +9,20 @@ Original paper: [**PaDiM: a Patch Distribution Modeling Framework for Anomaly De
 * **BTAD**: Download from [AViReS Laboratory website](http://avires.dimi.uniud.it/papers/btad/btad.zip)
 
 ## How to use
+To train the model, use:
 ```
-python main.py
+python train.py
 ```
-The option ```-d``` permits to choose the dataset.
-The datasets will be automatically downloaded.
+To evaluate the model:
+```
+python evaluate.py
+```
+The option ```-d``` permits to choose the dataset (```aitex```, ```mvtec```, ```btad```).
+In the train file, the datasets will be automatically downloaded.
+
+## Minimum requirements
+Python 3.9 with PyTorch 1.9.0. Use the file ```environment.yml``` for the conda environment.
+
 
 ## Reference
 [1] Thomas Defard, Aleksandr Setkov, Angelique Loesch, Romaric Audigier. *PaDiM: a Patch Distribution Modeling Framework for Anomaly Detection and Localization*. https://arxiv.org/pdf/2011.08785
