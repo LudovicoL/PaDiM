@@ -5,10 +5,13 @@ import sys
 import torch
 from torchvision import transforms
 from torch.utils.data import Dataset
+import zipfile
+from tqdm import tqdm
+import urllib.request
 
 import backbone as bb
 
-btad_folder = './datasets/BTAD/'
+btad_folder = './datasets/BTech_Dataset_transformed/'
 btad_config_file = btad_folder + 'config'
 
 BTAD_CLASS_NAMES = ['01', '02', '03']
@@ -118,14 +121,48 @@ def CreateBtadDataset(log_file):
 
 
 def prepareBtad(log_file):
-    if os.path.isdir(btad_folder) or os.path.isdir('./datasets/BTech_Dataset_transformed'):
-        if os.path.isdir('./datasets/BTech_Dataset_transformed'):
-            os.rename('./datasets/BTech_Dataset_transformed', btad_folder)
+    if os.path.isdir(btad_folder):
         if (os.path.exists(btad_config_file)):
             return
         else:
             bb.myPrint("Preparing the BTAD Dataset...", log_file)
             CreateBtadDataset(log_file)
     else:
-        bb.myPrint('ERROR: BTAD not found!', log_file)
-        sys.exit(-1)
+        download(log_file)
+        CreateBtadDataset(log_file)
+
+
+# --------------- Functions to download BTAD Dataset ---------------
+
+URL = 'http://avires.dimi.uniud.it/papers/btad/btad.zip'
+
+ARCHIVE = 'btad.zip'
+
+
+def download(log_file):
+    try:
+        if not os.path.isfile('./datasets/'+ARCHIVE):
+            bb.myPrint("Download BDAT dataset...", log_file)
+            download_url(URL, './datasets/'+ARCHIVE)
+        with zipfile.ZipFile('./datasets/'+ARCHIVE, mode='r') as z:
+            bb.myPrint("Extract " + str(ARCHIVE) + "...", log_file)
+            z.extractall(path='./datasets/')
+        os.remove('./datasets/'+ARCHIVE)
+        os.remove("./datasets/README.txt")
+        return
+    except Exception as e:
+        bb.myPrint(str(e), log_file)
+        bb.myPrint("Can't download BTAD dataset. Retry later.", log_file)
+        sys.exit(-1) 
+
+
+class DownloadProgressBar(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)
+
+
+def download_url(url, output_path):
+    with DownloadProgressBar(unit='B', unit_scale=True, miniters=1, desc=url.split('/')[-1]) as t:
+        urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)

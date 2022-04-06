@@ -348,7 +348,7 @@ def download(log_file):
             os.remove(aitex_folder+ARCHIVES[idx])
         return
     except Exception as e:
-        bb.myPrint(e, log_file)
+        bb.myPrint(str(e), log_file)
         bb.myPrint("Can't download AITEX dataset. Retry later.", log_file)
         sys.exit(-1) 
 

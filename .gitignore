@@ -2,3 +2,4 @@
 datasets/
 outputs/
 .git/
+__pycache__/

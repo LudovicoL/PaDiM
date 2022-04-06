@@ -49,6 +49,8 @@ def parse_args():
 
 def main():
     start_time = time.time()
+    train_times = []
+    test_times = []
     true_positive = 0
     true_negative = 0
     false_positive = 0
@@ -111,7 +113,6 @@ def main():
         sys.exit(-1)
     
     for class_name in CLASS_NAMES:
-
         if args.dataset == "mvtec":
             train_dataset = bb.MVTecDataset(class_name=class_name, is_train=True, log_file=log_file)
             test_dataset = bb.MVTecDataset(class_name=class_name, is_train=False, log_file=log_file)
@@ -133,6 +134,8 @@ def main():
 
         train_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
         test_outputs = OrderedDict([('layer1', []), ('layer2', []), ('layer3', [])])
+
+        train_time = time.time()    # Measure the train time
 
         # extract train set features
         train_feature_filepath = os.path.join(log_dir, 'temp_%s' % args.arch, 'train_%s.pkl' % class_name)
@@ -172,6 +175,9 @@ def main():
             bb.myPrint('load train set feature from: %s' % train_feature_filepath, log_file)
             with open(train_feature_filepath, 'rb') as f:
                 train_outputs = pickle.load(f)
+
+        train_times.append(time.time() - train_time)
+        test_time = time.time()    # Measure the test time
 
         gt_list = []
         gt_mask_list = []
@@ -224,7 +230,7 @@ def main():
         max_score = score_map.max()
         min_score = score_map.min()
         scores = (score_map - min_score) / (max_score - min_score)
-        
+        test_times.append(time.time() - test_time)
         # calculate image-level ROC AUC score
         img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
         gt_list = np.asarray(gt_list)
@@ -258,8 +264,11 @@ def main():
         false_positive += fp
         false_negative += fn
 
+        
+
     total_roc_auc = np.mean(total_roc_auc)
     total_pixel_roc_auc = np.mean(total_pixel_roc_auc)
+    
 
     bb.myPrint('Average ROCAUC: %.3f' % total_roc_auc, log_file)
     fig_img_rocauc.title.set_text('Average image ROCAUC: %.3f' % total_roc_auc)
@@ -285,6 +294,8 @@ def main():
     bb.myPrint('F1-Score: ' + str(bb.F_score(precision, sensitivity, beta=1)), log_file)
     bb.myPrint('F2-Score: ' + str(bb.F_score(precision, sensitivity, beta=2)), log_file)
 
+    bb.myPrint("Average train time: %s seconds." % np.mean(train_times), log_file)
+    bb.myPrint("Average test time: %s seconds." % np.mean(test_times), log_file)
     bb.myPrint("---Execution time: %s seconds ---\n" % (time.time() - start_time), log_file)
     log_file.close()
     if args.telegram: bb.telegram_bot_sendtext("*PaDiM*:\nAverage ROCAUC: _"+str(total_roc_auc) + "_\nAverage pixel ROCUAC: _"+str(total_pixel_roc_auc)+"_")

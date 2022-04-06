@@ -6,14 +6,14 @@ Original paper: [**PaDiM: a Patch Distribution Modeling Framework for Anomaly De
 ## Datasets
 * **MVTec AD**: Download from [MVTec website](https://www.mvtec.com/company/research/datasets/mvtec-ad/)
 * **AITEX**: Download from [AITEX website](https://www.aitex.es/afid/)
-* **BTAD**: Download from [Kaggle](https://www.kaggle.com/thtuan/btad-beantech-anomaly-detection)
+* **BTAD**: Download from [AViReS Laboratory website](http://avires.dimi.uniud.it/papers/btad/btad.zip)
 
 ## How to use
 ```
 python main.py
 ```
 The option ```-d``` permits to choose the dataset.
-MVTec AD and AITEX datasets will be automatically downloaded. For BTAD, it is necessary to download the archive and copy into ```datasets``` directory.
+The datasets will be automatically downloaded.
 
 ## Reference
 [1] Thomas Defard, Aleksandr Setkov, Angelique Loesch, Romaric Audigier. *PaDiM: a Patch Distribution Modeling Framework for Anomaly Detection and Localization*. https://arxiv.org/pdf/2011.08785

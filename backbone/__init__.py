@@ -43,3 +43,10 @@ def FPR(fp, tn):            # False Positive Rate
 
 def F_score(precision, sensitivity, beta):
     return (1 + beta**2) * ((precision * sensitivity)/(beta**2 * precision + sensitivity))
+
+def Binarization(mask, thres = 0., type = 0):
+    if type == 0:
+        mask = np.where(mask > thres, 1., 0.)
+    elif type ==1:
+        mask = np.where(mask > thres, mask, 0.)
+    return mask
